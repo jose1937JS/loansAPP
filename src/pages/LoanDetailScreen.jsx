@@ -1,7 +1,6 @@
+import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native'
-import { FAB } from 'react-native-paper';
-import Loans from '../components/Loans';
+import { View, Text, StyleSheet } from 'react-native'
 
 function LoanDetailScreen() {
   const [loan, setLoan] = useState({
@@ -23,7 +22,117 @@ function LoanDetailScreen() {
     <View style={styles.container}>
       <Text style={styles.h1Text}>{loan.name}</Text>
 
-      <Text>{JSON.stringify(loan, null, 4)}</Text>
+      <View style={styles.tableContainer}>
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Prestatario</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.name}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Monto</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.amount}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Moneda</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.currency}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Cambio a VES</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.ves_exchange}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Tasa</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.rate}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Tipo de tasa</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.rate_type}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Dinero por devolver</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.remaining_amount}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Dinero devuelto</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.amount_returned}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Fecha estimada de devolución</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{dayjs(loan.estimated_refund_date).format('MMMM MM')}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Fecha del préstamo</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{dayjs(loan.created_at).format('MMM MM HH:mm')}</Text>
+          </View>
+        </View>
+
+        <View style={styles.tableItemContainer}>
+          <View style={styles.tableContainerItem}>
+            <Text style={styles.bold}>Descripción</Text>
+          </View>
+
+          <View style={styles.tableContainerItem}>
+            <Text>{loan.description}</Text>
+          </View>
+        </View>
+      </View>
 
     </View>
   )
@@ -40,6 +149,24 @@ const styles = StyleSheet.create({
     color: 'black',
     marginBottom: 50,
     fontWeight: 'bold'
+  },
+  tableItemContainer: {
+    flexDirection: 'row',
+
+  },
+  tableContainer: {
+    borderWidth: 0.5,
+    borderBottomWidth: 0
+  },
+  tableContainerItem: {
+    width: '50%',
+    borderBottomWidth: 0.5,
+    padding: 5,
+    justifyContent: 'center'
+  },
+  bold: {
+    fontWeight: 'bold',
+    fontSize: 16
   }
 })
 
