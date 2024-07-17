@@ -14,7 +14,7 @@ function Router() {
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
-          // header: () => <Header />
+          // header: () => <Header />,
           headerShown: false
         }}
       >

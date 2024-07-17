@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { List, Divider } from 'react-native-paper';
 
 function LoanDetailScreen() {
   const [loan, setLoan] = useState({
@@ -15,126 +16,104 @@ function LoanDetailScreen() {
     remaining_amount: "10.00",
     amount_returned: "0.00",
     estimated_refund_date: "2024-07-16",
-    created_at: "2024-07-16 00:13:16"
+    created_at: "2024-07-10 00:13:16"
   })
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.h1Text}>{loan.name}</Text>
+    <ScrollView>
+      <View style={styles.container}>
+        <Text style={styles.h1Text}>{loan.name}</Text>
 
-      <View style={styles.tableContainer}>
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Prestatario</Text>
-          </View>
+        <List.Section title="Prestatario">
+          <List.Item
+            title="Nombre"
+            description={loan.name}
+            left={props => <List.Icon {...props} icon="account" />}
+          />
+        </List.Section>
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.name}</Text>
-          </View>
-        </View>
+        <List.Section title="Préstamo">
+          <List.Item
+            title="Moneda"
+            description={loan.currency}
+            left={props => <List.Icon {...props} icon="cash-fast" />}
+          />
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Monto</Text>
-          </View>
+          <Divider />
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.amount}</Text>
-          </View>
-        </View>
+          <List.Item
+            title="Cantidad"
+            description={loan.amount}
+            left={props => <List.Icon {...props} icon="currency-usd" />}
+          />
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Moneda</Text>
-          </View>
+          <Divider />
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.currency}</Text>
-          </View>
-        </View>
+          <List.Item
+            title="Cambio a VES"
+            description={loan.ves_exchange}
+            left={props => <List.Icon {...props} icon="cash-fast" />}
+          />
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Cambio a VES</Text>
-          </View>
+          <Divider />
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.ves_exchange}</Text>
-          </View>
-        </View>
+          <List.Item
+            title="Descripción"
+            description={loan.description}
+            left={props => <List.Icon {...props} icon="text-box" />}
+          />
+        </List.Section>
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Tasa</Text>
-          </View>
+        <List.Section title="Tasa de cambio">
+          <List.Item
+            title="Tipo"
+            description={loan.rate_type}
+            left={props => <List.Icon {...props} icon="bank" />}
+          />
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.rate}</Text>
-          </View>
-        </View>
+          <Divider />
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Tipo de tasa</Text>
-          </View>
+          <List.Item
+            title="Valor"
+            description={loan.rate}
+            left={props => <List.Icon {...props} icon="chart-bar" />}
+          />
+        </List.Section>
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.rate_type}</Text>
-          </View>
-        </View>
+        <List.Section title="Estadísticas">
+          <List.Item
+            title="Cantidad devuelta"
+            description={`${loan.amount_returned} USD`}
+            left={props => <List.Icon {...props} icon="arrow-right-bold-outline" />}
+          />
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Dinero por devolver</Text>
-          </View>
+          <Divider />
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.remaining_amount}</Text>
-          </View>
-        </View>
+          <List.Item
+            title="Cantidad restante"
+            description={`${loan.remaining_amount} USD`}
+            left={props => <List.Icon {...props} icon="arrow-left-bold-outline" />}
+          />
+        </List.Section>
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Dinero devuelto</Text>
-          </View>
+        <List.Section title="Fechas">
+          <List.Item
+            title="Fecha estimada de devolución"
+            description={dayjs(loan.estimated_refund_date).format('LL')}
+            left={props => <List.Icon {...props} icon="calendar-range" />}
+          />
 
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.amount_returned}</Text>
-          </View>
-        </View>
+          <Divider />
 
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Fecha estimada de devolución</Text>
-          </View>
-
-          <View style={styles.tableContainerItem}>
-            <Text>{dayjs(loan.estimated_refund_date).format('MMMM MM')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Fecha del préstamo</Text>
-          </View>
-
-          <View style={styles.tableContainerItem}>
-            <Text>{dayjs(loan.created_at).format('MMM MM HH:mm')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.tableItemContainer}>
-          <View style={styles.tableContainerItem}>
-            <Text style={styles.bold}>Descripción</Text>
-          </View>
-
-          <View style={styles.tableContainerItem}>
-            <Text>{loan.description}</Text>
-          </View>
-        </View>
+          <List.Item
+            title="Fecha de creación"
+            description={dayjs(loan.created_at).format('LL') }
+            left={props => <List.Icon {...props} icon="calendar-today" />}
+          />
+        </List.Section>
       </View>
 
-    </View>
+    </ScrollView>
   )
 }
 
@@ -147,7 +126,7 @@ const styles = StyleSheet.create({
   h1Text: {
     fontSize: 28,
     color: 'black',
-    marginBottom: 50,
+    marginBottom: 20,
     fontWeight: 'bold'
   },
   tableItemContainer: {

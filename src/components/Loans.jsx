@@ -24,7 +24,7 @@ function Loans({ item }) {
             {item.name}
           </Text>
           <Text style={styles.subtitle}>
-            {dayjs(item.created_at).format('MMM MM')}
+            {dayjs(item.created_at).format('LL')}
           </Text>
         </View>
       </Card.Content>
@@ -35,7 +35,7 @@ function Loans({ item }) {
           mode="text"
           contentStyle={styles.button}
         >
-            Detalles
+          Detalles
         </Button>
       </View>
     </Card>
