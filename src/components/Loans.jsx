@@ -1,19 +1,20 @@
 import dayjs from 'dayjs'
 import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
-import { Card, Button, Avatar } from 'react-native-paper'
+import { Card, Button, Avatar, ProgressBar, MD3Colors } from 'react-native-paper'
 import { useNavigation } from '@react-navigation/native';
 
 function Loans({ item }) {
   const navigation = useNavigation()
 
+  const percentage = 0.2;
+
   return (
     <Card style={styles.card}>
       <Card.Content style={styles.cardContent}>
-        <Avatar.Text
-          size={72}
-          label="50%"
-          labelStyle={styles.percent}
+        <Avatar.Icon
+          size={48}
+          icon="check"
         />
 
         <View style={styles.titleContainer}>
@@ -38,6 +39,12 @@ function Loans({ item }) {
           Detalles
         </Button>
       </View>
+
+      <ProgressBar
+        progress={percentage}
+        color={MD3Colors.primary60}
+        style={styles.progressBar}
+      />
     </Card>
   )
 }
@@ -51,7 +58,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleContainer: {
-    marginLeft: 15
+    marginLeft: 20
   },
   title: {
     fontSize: 32,
@@ -65,11 +72,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     marginRight: 5,
   },
-  percent: {
-    fontSize: 22
-  },
   tinyText: {
     fontSize: 14
+  },
+  progressBar: {
+    borderBottomRightRadius: 5,
+    borderBottomLeftRadius: 5,
+    height: 5
   }
 })
 
