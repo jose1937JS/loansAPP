@@ -6,8 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 
 function Loans({ item }) {
   const navigation = useNavigation()
-
-  const percentage = 0.2;
+  const percentage = 0.2
 
   return (
     <Card style={styles.card}>
@@ -32,7 +31,7 @@ function Loans({ item }) {
 
       <View style={styles.footer}>
         <Button
-          onPress={() => navigation.navigate('LoanDetailScreen')}
+          onPress={() => navigation.navigate('LoanDetailScreen', { id: item.id })}
           mode="text"
           contentStyle={styles.button}
         >
