@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { List, Divider } from 'react-native-paper';
+import { List, Divider, ActivityIndicator, MD2Colors } from 'react-native-paper';
 import useLoan from '../hooks/loans';
 
 function LoanDetailScreen({ route }) {
@@ -111,6 +111,23 @@ function LoanDetailScreen({ route }) {
             left={props => <List.Icon {...props} icon="calendar-today" />}
           />
         </List.Section>
+
+        <List.Section title="Reembolsos">
+          {
+            loan?.refunds?.map((item) => (
+              <>
+                <List.Item
+                  key={item.id}
+                  title={`${item.amount} USD`}
+                  description={dayjs(item.created_at).format('LL')}
+                  left={props => <List.Icon {...props} icon="calendar-range" />}
+                />
+
+                <Divider />
+              </>
+            ))
+          }
+        </List.Section>
       </View>
 
     </ScrollView>
@@ -146,6 +163,11 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: 'bold',
     fontSize: 16
+  },
+  center: {
+    alignContent: 'center',
+    justifyContent: 'center',
+    flex: 1
   }
 })
 

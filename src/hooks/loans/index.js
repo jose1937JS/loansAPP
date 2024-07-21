@@ -11,11 +11,10 @@ export default function useLoan() {
     .then(({ data }) => {
       // console.log("GetLoansData", JSON.stringify(data, null, 4))
       setLoans(data.data)
+      setIsLoading(false)
     })
     .catch((err) => {
       console.log("ERROR", err.response)
-    })
-    .finally(() => {
       setIsLoading(false)
     })
   }
@@ -24,11 +23,10 @@ export default function useLoan() {
     await api.get(`/loans/${id}`)
     .then(({ data }) => {
       setLoan(data.data)
+      setIsLoading(false)
     })
     .catch((err) => {
       console.log("ERROR", err.response)
-    })
-    .finally(() => {
       setIsLoading(false)
     })
   }
@@ -39,11 +37,10 @@ export default function useLoan() {
     await api.post('/loans', data)
     .then(({ data }) => {
       response = data.data
+      setIsLoading(false)
     })
     .catch((err) => {
       console.log("ERROR", err.response)
-    })
-    .finally(() => {
       setIsLoading(false)
     })
 

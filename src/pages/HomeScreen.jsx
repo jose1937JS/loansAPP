@@ -1,6 +1,6 @@
 import React,  { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native'
-import { FAB, ActivityIndicator, MD2Colors } from 'react-native-paper';
+import { FAB } from 'react-native-paper';
 import Loans from '../components/Loans';
 import useLoan from '../hooks/loans';
 import { useNavigation } from '@react-navigation/native';
@@ -13,14 +13,15 @@ function HomeScreen() {
     getLoans()
   }, [])
 
-  if(isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator animating color={MD2Colors.red800} />
-      </View>
-    )
-  }
+  // if(isLoading) {
+  //   return (
+  //     <View style={styles.center}>
+  //       <ActivityIndicator animating color={MD2Colors.red800} />
+  //     </View>
+  //   )
+  // }
 
+  const onRefresh = async () => await getLoans()
   const navigate = () => navigation.navigate('CreateLoanScreen')
 
   return (
@@ -28,6 +29,8 @@ function HomeScreen() {
       <Text style={styles.h1Text}>Préstamos</Text>
 
       <FlatList
+        refreshing={isLoading}
+        onRefresh={onRefresh}
         showsVerticalScrollIndicator={false}
         style={styles.loansContainer}
         data={loans}
