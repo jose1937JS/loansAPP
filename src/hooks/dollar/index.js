@@ -1,32 +1,24 @@
 import axios from "axios";
-import React from 'react'
+import useSWR from 'swr'
 
-export default function useDollar() {
-  const [dollar, setDollar] = React.useState(null)
-  const [isLoading, setIsLoading] = React.useState(true)
-
+export default function useDollar(shouldFetch = true, rate_type = 'enparalelovzla') {
+  // rate_type:
   // oficial = bcv
   // paralelo = enparalelovzla
-  const getDollarPrice = async (rate_type = 'enparalelovzla') => {
 
-    // Para evitar llamadas innecesarias a la api cuando el valor del dollar esta seteado
-    if(!dollar) {
-      await axios.get(`https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=criptodolar&monitor=${rate_type}`)
-      .then(({ data }) => {
-        console.log("RES DOLLAR", JSON.stringify(data, null, 4))
-        setDollar(data)
-        setIsLoading(false)
-      })
-      .catch((err) => {
-        console.log("ERROR", JSON.stringify(err.response, null, 4))
-        setIsLoading(false)
-      })
-    }
+  const fetcher = (url) => {
+    const res = axios.get(url)
+    .then(({ data }) => {
+      console.log("RES DOLLAR", JSON.stringify(data, null, 4))
+      return data.price
+    })
+    .catch((err) => {
+      console.log("ERROR", JSON.stringify(err.response, null, 4))
+    })
+
+    return res
   }
 
-  return {
-    getDollarPrice,
-    dollar,
-    isLoading,
-  }
+  return useSWR(shouldFetch ? `https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=criptodolar&monitor=${rate_type}` : null, fetcher)
+
 }

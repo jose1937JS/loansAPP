@@ -1,16 +1,15 @@
-import React,  { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput as InputText } from 'react-native'
+import React,  { useState, useEffect, useContext } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import RNPickerSelect from 'react-native-picker-select';
 import { TextInput, MD2Colors } from 'react-native-paper';
 
 import useLoan from '../hooks/loans';
 import useDollar from '../hooks/dollar';
+import { DollarContext } from '../context/dollarContext';
 
 function CreateLoanScreen() {
   const { createLoan, isLoading: isCreatingLoan } = useLoan()
-
-  // GUARDAR EL VALOR DEL DOLLAR EN CONTEXT API PARA QUE ASI SE PEUDA LLAMAR AL PRECIO UNA VEZ Y SI ESTA SETEADO EL VALOR, NO HACERLO
-  const { dollar, getDollarPrice, isLoading: isLoadingDollar } = useDollar()
+  const { dollar, setDollarPrice } = useContext(DollarContext)
   const [state, setState] = useState({
     name: '',
     amount: '',
@@ -21,24 +20,20 @@ function CreateLoanScreen() {
     rate: '',
     rate_type: 'enparalelovzla',
   })
+  const [shouldFetch, setShouldFetch] = useState(false)
+  const { data: updatedDollarPrice, isLoading } = useDollar(shouldFetch, state.rate_type)
 
   useEffect(() => {
-    (async function() {
-      if(state.rate_type) {
-        await getDollarPrice(state.rate_type)
-      }
-    })()
-  }, [state.rate_type])
+    if(updatedDollarPrice) {
+      console.log("DOLLAR", JSON.stringify(updatedDollarPrice, null, 4))
+      setDollarPrice(updatedDollarPrice)
 
-  useEffect(() => {
-    if(dollar) {
       if(state.ves_exchange > 0) {
-        const ves_exchange = (dollar.price * state.amount).toFixed(2)
+        const ves_exchange = (updatedDollarPrice * state.amount).toFixed(2)
         setState({ ...state, ves_exchange })
-        // console.log("ves_exchange", JSON.stringify(ves_exchange, null, 4))
       }
     }
-  }, [dollar])
+  }, [updatedDollarPrice])
 
   const onChangeText = (key, value) => {
     setState({
@@ -47,24 +42,27 @@ function CreateLoanScreen() {
     })
   }
 
+  // EVITAR QUE SE HAGAN 2 PETICIONES A LA API
+  const onChangeRateType = async (value) => {
+    onChangeText('rate_type', value)
+    setShouldFetch(true)
+  }
+
   const onChangeAmount = async (text) => {
     // (LISTO) obtener el rate del VES en base al tipo de rate (state.rate_type) y calcular el precio en bs
     // (LISTO) y mostrarlo en ves_exchange, esto siempre y cuando el prestamo sea en USD
     // En caso de ser VES, se debe rellenar directamente el campo ves_exchange y calcular los USD en base al rate_type
-    const ves_exchange = (dollar.price * text).toFixed(2)
+    const ves_exchange = (dollar * text).toFixed(2)
 
     setState({
       ...state,
       amount: text,
       ves_exchange
     })
-
-    // console.log("ves_exchange", JSON.stringify(ves_exchange, null, 4))
-
   };
 
   const onSubmit = async () => {
-
+    createLoan(state)
   }
 
   return (
@@ -98,7 +96,8 @@ function CreateLoanScreen() {
             <Text style={styles.labelPicker}>Selecciona el tipo de tasa:</Text>
             <View style={styles.pickerStyle}>
               <RNPickerSelect
-                onValueChange={(value) => onChangeText('rate_type', value)}
+                value={state.rate_type}
+                onValueChange={onChangeRateType}
                 items={[
                   { value: 'bcv', label: 'BCV' },
                   { value: 'enparalelovzla', label: 'Paralelo' },

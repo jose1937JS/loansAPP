@@ -4,6 +4,7 @@ import { FAB } from 'react-native-paper';
 import Loans from '../components/Loans';
 import useLoan from '../hooks/loans';
 import { useNavigation } from '@react-navigation/native';
+import globalStyles from '../styles'
 
 function HomeScreen() {
   const navigation = useNavigation()
@@ -25,7 +26,7 @@ function HomeScreen() {
   const navigate = () => navigation.navigate('CreateLoanScreen')
 
   return (
-    <View style={styles.container}>
+    <View style={globalStyles.container}>
       <Text style={styles.h1Text}>Préstamos</Text>
 
       <FlatList
@@ -48,11 +49,6 @@ function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 15,
-    backgroundColor: 'white'
-  },
   loansContainer: {
     marginTop: 50,
   },
@@ -65,11 +61,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: 'black',
     fontWeight: 'bold'
-  },
-  center: {
-    alignContent: 'center',
-    justifyContent: 'center',
-    flex: 1
   }
 })
 
