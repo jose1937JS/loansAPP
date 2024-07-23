@@ -1,7 +1,10 @@
 import React,  { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import RNPickerSelect from 'react-native-picker-select';
-import { TextInput, MD2Colors } from 'react-native-paper';
+import { TextInput, MD2Colors, Button, MD3Colors  } from 'react-native-paper';
+import { useForm, Controller  } from "react-hook-form"
+import { yupResolver } from "@hookform/resolvers/yup"
+import validationSchema from '../validations'
 
 import useLoan from '../hooks/loans';
 import useDollar from '../hooks/dollar';
@@ -9,60 +12,74 @@ import { DollarContext } from '../context/dollarContext';
 
 function CreateLoanScreen() {
   const { createLoan, isLoading: isCreatingLoan } = useLoan()
-  const { dollar, setDollarPrice } = useContext(DollarContext)
-  const [state, setState] = useState({
+  const { dollar, rate_type, setDollarPrice, setRateType } = useContext(DollarContext)
+  const [shouldFetch, setShouldFetch] = useState(false)
+
+  const defaultValues = {
     name: '',
     amount: '',
     description: '',
     estimated_refund_date: '',
     currency: 'USD',
     ves_exchange: '0.00',
-    rate: '',
-    rate_type: 'enparalelovzla',
+    rate: dollar,
+    rate_type: rate_type,
+  }
+
+  const {
+    control,
+    watch,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(validationSchema),
   })
-  const [shouldFetch, setShouldFetch] = useState(false)
-  const { data: updatedDollarPrice, isLoading } = useDollar(shouldFetch, state.rate_type)
+
+  const { data: updatedDollarPrice, isLoading } = useDollar(shouldFetch, getValues('rate_type'))
 
   useEffect(() => {
     if(updatedDollarPrice) {
-      console.log("DOLLAR", JSON.stringify(updatedDollarPrice, null, 4))
+      // console.log("DOLLAR", JSON.stringify(updatedDollarPrice, null, 4))
       setDollarPrice(updatedDollarPrice)
+      setRateType(getValues('rate_type'))
+      setValue('rate', updatedDollarPrice)
 
-      if(state.ves_exchange > 0) {
-        const ves_exchange = (updatedDollarPrice * state.amount).toFixed(2)
-        setState({ ...state, ves_exchange })
+      if(getValues('ves_exchange') > 0) {
+        const ves_exchange = (updatedDollarPrice * getValues('amount')).toFixed(2)
+        setValue('ves_exchange', ves_exchange)
       }
     }
   }, [updatedDollarPrice])
 
-  const onChangeText = (key, value) => {
-    setState({
-      ...state,
-      [key]: value
-    })
-  }
-
-  // EVITAR QUE SE HAGAN 2 PETICIONES A LA API
-  const onChangeRateType = async (value) => {
-    onChangeText('rate_type', value)
+  const onChangeRateType = (value) => {
+    setValue('rate_type', value)
     setShouldFetch(true)
   }
 
-  const onChangeAmount = async (text) => {
-    // (LISTO) obtener el rate del VES en base al tipo de rate (state.rate_type) y calcular el precio en bs
+  const onChangeAmount = (value) => {
+    // (LISTO) obtener el rate del VES en base al tipo de rate (getValues('rate_type')) y calcular el precio en bs
     // (LISTO) y mostrarlo en ves_exchange, esto siempre y cuando el prestamo sea en USD
-    // En caso de ser VES, se debe rellenar directamente el campo ves_exchange y calcular los USD en base al rate_type
-    const ves_exchange = (dollar * text).toFixed(2)
+    // (LISTO) En caso de ser VES, se debe rellenar directamente el campo ves_exchange y calcular los USD en base al rate_type
 
-    setState({
-      ...state,
-      amount: text,
-      ves_exchange
-    })
+    if(getValues('currency') == 'USD') {
+      const ves_exchange = (dollar * value).toFixed(2)
+      setValue('amount', value)
+      setValue('ves_exchange', ves_exchange)
+    }
+    else {
+      const dollar_exchange = (value / dollar).toFixed(2)
+      setValue('amount', dollar_exchange)
+      setValue('ves_exchange', value)
+    }
+
   };
 
-  const onSubmit = async () => {
-    createLoan(state)
+  const onSubmit = async (data) => {
+    console.log("onSubmit", JSON.stringify(data, null, 4))
+    // createLoan(data)
   }
 
   return (
@@ -71,70 +88,146 @@ function CreateLoanScreen() {
         <Text style={styles.h1Text}>Nuevo préstamo</Text>
 
         <View style={styles.marginBottom}>
-          <TextInput
-            mode="outlined"
-            label="Nombre de la persona"
-            value={state.name}
-            onChangeText={(text) => onChangeText('name', text)}
-            right={<TextInput.Icon icon="account-outline" />}
-          />
-        </View>
-
-        <Text style={styles.labelPicker}>Selecciona la moneda:</Text>
-        <View style={styles.pickerStyle}>
-          <RNPickerSelect
-            onValueChange={(value) => onChangeText('currency', value)}
-            items={[
-              { label: 'USD', value: 'USD' },
-              { label: 'VES', value: 'VES' },
-            ]}
-          />
-        </View>
-
-        { state.currency == 'VES' &&
-          <View>
-            <Text style={styles.labelPicker}>Selecciona el tipo de tasa:</Text>
-            <View style={styles.pickerStyle}>
-              <RNPickerSelect
-                value={state.rate_type}
-                onValueChange={onChangeRateType}
-                items={[
-                  { value: 'bcv', label: 'BCV' },
-                  { value: 'enparalelovzla', label: 'Paralelo' },
-                ]}
+          <Controller
+            name="name"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                mode="outlined"
+                label="Nombre de la persona"
+                value={value}
+                onChangeText={onChange}
+                right={<TextInput.Icon icon="account-outline" />}
               />
-            </View>
+            )}
+          />
+          {errors.name && <Text style={styles.inputError}>{errors.name.message}</Text>}
+        </View>
+
+        <View style={styles.marginBottom}>
+          <Text style={styles.labelPicker}>Selecciona la moneda:</Text>
+          <View style={styles.pickerStyle}>
+            <Controller
+              name="currency"
+              control={control}
+              render={({ field: { value } }) => (
+                <RNPickerSelect
+                  value={value}
+                  onValueChange={(value) => setValue('currency', value)}
+                  items={[
+                    { label: 'USD', value: 'USD' },
+                    { label: 'VES', value: 'VES' },
+                  ]}
+                />
+              )}
+            />
+          </View>
+          {errors.currency && <Text style={styles.inputError}>{errors.currency.message}</Text>}
+        </View>
+
+        <View style={styles.marginBottom}>
+          <Text style={styles.labelPicker}>Selecciona el tipo de tasa:</Text>
+          <View style={styles.pickerStyle}>
+            <Controller
+              name="rate_type"
+              control={control}
+              render={({ field: { value } }) => (
+                <RNPickerSelect
+                  value={value}
+                  onValueChange={onChangeRateType}
+                  items={[
+                    { value: 'enparalelovzla', label: 'Paralelo' },
+                    { value: 'bcv', label: 'BCV' },
+                  ]}
+                />
+              )}
+            />
+          </View>
+        </View>
+
+        { watch('currency') == 'USD' &&
+          <View style={styles.marginBottom}>
+            <Controller
+              name="amount"
+              control={control}
+              render={({ field: { value } }) => (
+                <TextInput
+                  mode="outlined"
+                  label="Monto"
+                  value={value}
+                  onChangeText={onChangeAmount}
+                  right={<TextInput.Icon icon="cash" />}
+                />
+              )}
+            />
+            {errors.amount && <Text style={styles.inputError}>{errors.amount.message}</Text>}
           </View>
         }
 
-        <View style={styles.marginBottom}>
-          <TextInput
-            mode="outlined"
-            label="Monto"
-            value={state.amount}
-            onChangeText={(text) => onChangeAmount(text)}
-            right={<TextInput.Icon icon="cash" />}
-          />
-        </View>
-
-        { state.currency == 'VES' &&
+        { watch('currency') == 'USD' &&
           <View style={styles.marginBottom}>
             <Text style={styles.labelPicker}>Cambio a VES</Text>
             <View style={styles.vesExchangeInput}>
-              <Text style={styles.vesExchangeInputText}>{state.ves_exchange ?? 'Cambio a VES'}</Text>
+              <Text style={styles.vesExchangeInputText}>{watch('ves_exchange') ?? 'Cambio a VES'}</Text>
+            </View>
+          </View>
+        }
+
+        { watch('currency') == 'VES' &&
+          <View style={styles.marginBottom}>
+            <Controller
+              name="ves_exchange"
+              control={control}
+              render={({ field: { value } }) => (
+                <TextInput
+                  mode="outlined"
+                  label="Monto"
+                  value={value}
+                  onChangeText={onChangeAmount}
+                  right={<TextInput.Icon icon="cash" />}
+                />
+              )}
+            />
+            {errors.ves_exchange && <Text style={styles.inputError}>{errors.ves_exchange.message}</Text>}
+          </View>
+        }
+
+        { watch('currency') == 'VES' &&
+          <View style={styles.marginBottom}>
+            <Text style={styles.labelPicker}>Cambio a USD</Text>
+            <View style={styles.vesExchangeInput}>
+              <Text style={styles.vesExchangeInputText}>{watch('amount') ?? 'Cambio a USD'}</Text>
             </View>
           </View>
         }
 
         <View style={styles.marginBottom}>
-          <TextInput
-            mode="outlined"
-            label="Descripción"
-            value={state.description}
-            onChangeText={(text) => onChangeText('description', text)}
-            right={<TextInput.Icon icon="menu" />}
+          <Controller
+            name="description"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                mode="outlined"
+                label="Descripción"
+                value={value}
+                onChangeText={onChange}
+                right={<TextInput.Icon icon="menu" />}
+              />
+            )}
           />
+          {errors.description && <Text style={styles.inputError}>{errors.description.message}</Text>}
         </View>
+
+        <Button
+          style={styles.button}
+          // onPress={handleSubmit(onSubmit)}
+          onPress={() => { console.log(JSON.stringify(getValues(), null, 4)) }}
+          icon="floppy"
+          mode="contained"
+          loading={isCreatingLoan}
+        >
+          Guardar
+        </Button>
       </View>
     </ScrollView>
   )
@@ -155,7 +248,6 @@ const styles = StyleSheet.create({
   pickerStyle: {
     borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 20,
     borderColor: MD2Colors.grey700
   },
   marginBottom: {
@@ -174,6 +266,16 @@ const styles = StyleSheet.create({
   vesExchangeInputText: {
     fontSize: 17,
     color: MD2Colors.grey800
+  },
+  button: {
+    marginTop: 20,
+    paddingVertical: 3,
+    borderRadius: 5
+  },
+  inputError: {
+    fontSize: 12,
+    marginTop: 5,
+    color: MD3Colors.error50
   }
 })
 

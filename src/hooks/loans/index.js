@@ -4,9 +4,10 @@ import React from 'react'
 export default function useLoan() {
   const [loans, setLoans] = React.useState([])
   const [loan, setLoan] = React.useState([])
-  const [isLoading, setIsLoading] = React.useState(true)
+  const [isLoading, setIsLoading] = React.useState(false)
 
   const getLoans = async () => {
+    setIsLoading(true)
     await api.get('/loans')
     .then(({ data }) => {
       // console.log("GetLoansData", JSON.stringify(data, null, 4))
@@ -20,6 +21,7 @@ export default function useLoan() {
   }
 
   const getLoan = async (id) => {
+    setIsLoading(true)
     await api.get(`/loans/${id}`)
     .then(({ data }) => {
       setLoan(data.data)
@@ -32,6 +34,7 @@ export default function useLoan() {
   }
 
   const createLoan = async (data) => {
+    setIsLoading(true)
     const response = null
 
     await api.post('/loans', data)

@@ -1,7 +1,7 @@
 import axios from "axios";
 import useSWR from 'swr'
 
-export default function useDollar(shouldFetch = true, rate_type = 'enparalelovzla') {
+export default function useDollar(shouldFetch = false, rate_type = 'enparalelovzla') {
   // rate_type:
   // oficial = bcv
   // paralelo = enparalelovzla

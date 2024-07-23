@@ -14,6 +14,7 @@ dayjs.locale('es') // use locale globally
 
 function App(): React.JSX.Element {
   const [dollar, setDollarPrice] = useState(0)
+  const [rateType, setRateType] = useState('enparalelovzla')
   const { data, isLoading } = useDollar()
 
   useEffect(() => {
@@ -33,6 +34,8 @@ function App(): React.JSX.Element {
   return (
     <DollarContext.Provider value={{
       dollar,
+      rateType,
+      setRateType,
       setDollarPrice
     }}>
       <Router />
