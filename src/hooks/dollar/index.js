@@ -20,5 +20,4 @@ export default function useDollar(shouldFetch = false, rate_type = 'enparalelovz
   }
 
   return useSWR(shouldFetch ? `https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=criptodolar&monitor=${rate_type}` : null, fetcher)
-
 }

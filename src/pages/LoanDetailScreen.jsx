@@ -22,12 +22,12 @@ function LoanDetailScreen({ route }) {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text style={styles.h1Text}>{loan.name}</Text>
+        <Text style={styles.h1Text}>{loan?.name}</Text>
 
         <List.Section title="Prestatario">
           <List.Item
             title="Nombre"
-            description={loan.name}
+            description={loan?.name}
             left={props => <List.Icon {...props} icon="account" />}
           />
         </List.Section>
@@ -35,7 +35,7 @@ function LoanDetailScreen({ route }) {
         <List.Section title="Préstamo">
           <List.Item
             title="Moneda"
-            description={loan.currency}
+            description={loan?.currency}
             left={props => <List.Icon {...props} icon="cash-fast" />}
           />
 
@@ -43,7 +43,7 @@ function LoanDetailScreen({ route }) {
 
           <List.Item
             title="Cantidad"
-            description={loan.amount}
+            description={loan?.amount}
             left={props => <List.Icon {...props} icon="currency-usd" />}
           />
 
@@ -51,7 +51,7 @@ function LoanDetailScreen({ route }) {
 
           <List.Item
             title="Cambio a VES"
-            description={loan.ves_exchange}
+            description={loan?.ves_exchange}
             left={props => <List.Icon {...props} icon="cash-fast" />}
           />
 
@@ -59,7 +59,7 @@ function LoanDetailScreen({ route }) {
 
           <List.Item
             title="Descripción"
-            description={loan.description}
+            description={loan?.description}
             left={props => <List.Icon {...props} icon="text-box" />}
           />
         </List.Section>
@@ -67,7 +67,7 @@ function LoanDetailScreen({ route }) {
         <List.Section title="Tasa de cambio">
           <List.Item
             title="Tipo"
-            description={loan.rate_type}
+            description={loan?.rate_type}
             left={props => <List.Icon {...props} icon="bank" />}
           />
 
@@ -75,7 +75,7 @@ function LoanDetailScreen({ route }) {
 
           <List.Item
             title="Valor"
-            description={loan.rate}
+            description={loan?.rate}
             left={props => <List.Icon {...props} icon="chart-bar" />}
           />
         </List.Section>
@@ -83,7 +83,7 @@ function LoanDetailScreen({ route }) {
         <List.Section title="Estadísticas">
           <List.Item
             title="Cantidad devuelta"
-            description={`${loan.amount_returned} USD`}
+            description={`${loan?.amount_returned} USD`}
             left={props => <List.Icon {...props} icon="arrow-right-bold-outline" />}
           />
 
@@ -91,7 +91,7 @@ function LoanDetailScreen({ route }) {
 
           <List.Item
             title="Cantidad restante"
-            description={`${loan.remaining_amount} USD`}
+            description={`${loan?.remaining_amount} USD`}
             left={props => <List.Icon {...props} icon="arrow-left-bold-outline" />}
           />
         </List.Section>
@@ -99,7 +99,7 @@ function LoanDetailScreen({ route }) {
         <List.Section title="Fechas">
           <List.Item
             title="Fecha estimada de devolución"
-            description={dayjs(loan.estimated_refund_date).format('LL')}
+            description={dayjs(loan?.estimated_refund_date).format('LL')}
             left={props => <List.Icon {...props} icon="calendar-range" />}
           />
 
@@ -107,7 +107,7 @@ function LoanDetailScreen({ route }) {
 
           <List.Item
             title="Fecha de creación"
-            description={dayjs(loan.created_at).format('LL') }
+            description={dayjs(loan?.created_at).format('LL') }
             left={props => <List.Icon {...props} icon="calendar-today" />}
           />
         </List.Section>
