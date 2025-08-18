@@ -37,6 +37,7 @@ function HomeScreen() {
         data={loans}
         renderItem={({item}) => <Loans item={item} />}
         keyExtractor={item => item.id}
+        ListEmptyComponent={() => <Text style={{textAlign: 'center', marginTop: 20}}>No hay préstamos</Text>}
       />
 
       <FAB

@@ -1,23 +1,21 @@
 import axios from "axios";
 import useSWR from 'swr'
 
-export default function useDollar(shouldFetch = false, rate_type = 'enparalelovzla') {
-  // rate_type:
-  // oficial = bcv
-  // paralelo = enparalelovzla
-
+export default function useDollar(shouldFetch = false, monitor = 'usd', page = 'bcv') {
   const fetcher = (url) => {
-    const res = axios.get(url)
-    .then(({ data }) => {
-      console.log("RES DOLLAR", JSON.stringify(data, null, 4))
-      return data.price
-    })
-    .catch((err) => {
-      console.log("ERROR", JSON.stringify(err.response, null, 4))
-    })
+    return axios.get(url)
+      .then(({ data }) => {
+        console.log("RES DOLLAR", JSON.stringify(data, null, 4));
+        return data.price;
+      })
+      .catch((err) => {
+        console.log("ERROR", JSON.stringify(err?.response, null, 4));
+        return null;
+      });
+  };
 
-    return res
-  }
+  // Para debug, muestra los parámetros actuales
+  console.log({ url: `https://pydolarve.org/api/v2/dollar?page=${page}&monitor=${monitor}` });
 
-  return useSWR(shouldFetch ? `https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=criptodolar&monitor=${rate_type}` : null, fetcher)
+  return useSWR(shouldFetch ? `https://pydolarve.org/api/v2/dollar?page=${page}&monitor=${monitor}` : null, fetcher);
 }

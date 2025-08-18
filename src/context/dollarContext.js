@@ -1,7 +1,10 @@
 import { createContext } from 'react'
 export const DollarContext = createContext({
   dollar: 0,
-  rateType: '',
-  setRateType: (value) => {},
+  monitor: '',
+  page: '',
+  isDollarLoading: false,
+  setPage: (value) => {},
+  setMonitor: (value) => {},
   setDollarPrice: (value) => {}
 })

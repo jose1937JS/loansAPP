@@ -1,17 +1,28 @@
 import dayjs from 'dayjs';
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { List, Divider, ActivityIndicator, MD2Colors } from 'react-native-paper';
+import { List, Divider, ActivityIndicator, MD2Colors, Button } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 import useLoan from '../hooks/loans';
 
 function LoanDetailScreen({ route }) {
   const { getLoan, loan, isLoading } = useLoan()
+  const navigation = useNavigation()
 
   useEffect(() => {
     getLoan(route?.params?.id)
   }, [])
 
-  if(isLoading) {
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      getLoan(route?.params?.id)
+    });
+
+    // Return the function to unsubscribe from the event so it gets removed on unmount
+    return unsubscribe;
+  }, [navigation]);
+
+  if (isLoading || !loan) {
     return (
       <View style={styles.center}>
         <ActivityIndicator animating color={MD2Colors.red800} />
@@ -23,6 +34,16 @@ function LoanDetailScreen({ route }) {
     <ScrollView>
       <View style={styles.container}>
         <Text style={styles.h1Text}>{loan?.name}</Text>
+
+        <Button
+          mode="contained"
+          icon="cash-refund"
+          style={{ marginBottom: 16 }}
+          onPress={() => navigation.navigate('AddRefundScreen', { loan })}
+          disabled={Number(loan?.remaining_amount ?? 0) <= 0}
+        >
+          Registrar reembolso
+        </Button>
 
         <List.Section title="Prestatario">
           <List.Item
@@ -83,7 +104,7 @@ function LoanDetailScreen({ route }) {
         <List.Section title="Estadísticas">
           <List.Item
             title="Cantidad devuelta"
-            description={`${loan?.amount_returned} USD`}
+            description={`${Number(loan?.amount_returned ?? 0).toFixed(2)} USD`}
             left={props => <List.Icon {...props} icon="arrow-right-bold-outline" />}
           />
 
@@ -91,7 +112,7 @@ function LoanDetailScreen({ route }) {
 
           <List.Item
             title="Cantidad restante"
-            description={`${loan?.remaining_amount} USD`}
+            description={`${Number(loan?.remaining_amount ?? 0).toFixed(2)} USD`}
             left={props => <List.Icon {...props} icon="arrow-left-bold-outline" />}
           />
         </List.Section>
@@ -113,20 +134,20 @@ function LoanDetailScreen({ route }) {
         </List.Section>
 
         <List.Section title="Reembolsos">
-          {
-            loan?.refunds?.map((item) => (
-              <>
+          {Array.isArray(loan?.refunds) && loan.refunds.length > 0 ? (
+            loan.refunds.map((item) => (
+              <View key={item.id}>
                 <List.Item
-                  key={item.id}
-                  title={`${item.amount} USD`}
+                  title={`${Number(item.amount ?? 0).toFixed(2)} USD`}
                   description={dayjs(item.created_at).format('LL')}
                   left={props => <List.Icon {...props} icon="calendar-range" />}
                 />
-
                 <Divider />
-              </>
+              </View>
             ))
-          }
+          ) : (
+            <Text style={{ textAlign: 'center', color: 'grey' }}>Aún no hay reembolsos</Text>
+          )}
         </List.Section>
       </View>
 
