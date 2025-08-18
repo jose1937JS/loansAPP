@@ -5,14 +5,14 @@ import dayjs from "dayjs";
 
 export default function useLoan() {
   const [loans, setLoans] = React.useState([])
-  const [loan, setLoan] = React.useState([])
+  const [loan, setLoan] = React.useState(null)
   const [isLoading, setIsLoading] = React.useState(false)
 
   const getLoans = async () => {
     setIsLoading(true)
     await api.get('/loans')
     .then(({ data }) => {
-      // console.log("GetLoansData", JSON.stringify(data, null, 4))
+      console.log("GetLoansData", JSON.stringify(data, null, 4))
       setLoans(data.data)
       setIsLoading(false)
     })

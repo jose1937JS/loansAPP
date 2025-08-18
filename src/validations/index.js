@@ -8,7 +8,21 @@ const validationSchema = object({
   currency: string().oneOf(['VES', 'USD']).required('Este campo es requerido'),
   ves_exchange: string().trim().required('Este campo es requerido'),
   rate: number().required('Este campo es requerido'),
-  rate_type: string().oneOf(['bcv', 'enparalelovzla']).required('Este campo es requerido'),
+  rate_type: string().oneOf(['bcv', 'binance']).required('Este campo es requerido'),
 })
 
-export default validationSchema
+const refundSchema = object({
+  amount: number()
+    .typeError('Debe ser un número válido')
+    .positive('Debe ser mayor a 0')
+    .required('Este campo es requerido'),
+  ves_exchange: number()
+    .typeError('Debe ser un número válido')
+    .positive('Debe ser mayor a 0')
+    .required('Este campo es requerido'),
+  currency: string().oneOf(['USD', 'VES']).required('Este campo es requerido'),
+  loan_id: number().required('Falta el préstamo'),
+  rate: number().nullable(),
+});
+
+export { validationSchema, refundSchema }

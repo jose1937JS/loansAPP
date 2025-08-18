@@ -2,24 +2,32 @@ import React,  { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import RNPickerSelect from 'react-native-picker-select';
 import DatePicker from 'react-native-date-picker'
-import { TextInput, MD2Colors, Button, MD3Colors, ActivityIndicator } from 'react-native-paper';
+import { TextInput, MD2Colors, Button, MD3Colors, ActivityIndicator, HelperText, Divider, Chip } from 'react-native-paper';
 import { useForm, Controller  } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import validationSchema from '../validations'
+import { validationSchema } from '../validations'
 import Modal from '../components/Modal'
 
 import useLoan from '../hooks/loans';
-import useDollar from '../hooks/dollar';
 import { DollarContext } from '../context/dollarContext';
 import dayjs from 'dayjs';
 
+
 function CreateLoanScreen({ navigation }) {
-  const { createLoan, isLoading: isCreatingLoan } = useLoan()
-  const { dollar, rateType, setDollarPrice, setRateType } = useContext(DollarContext)
-  const [shouldFetch, setShouldFetch] = useState(false)
+  const { createLoan, isLoading: isCreatingLoan } = useLoan();
+  const { dollar, page, isDollarLoading, setDollarPrice, setMonitor, setPage } = useContext(DollarContext);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [data, setData] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  // Inicializar rateType con el valor de page del contexto
+  const [rateType, setRateType] = useState(page || 'bcv');
+
+  // Mapeo de rateType a monitor y page
+  const getRateParams = (type) => {
+    if (type === 'bcv') return { monitor: 'usd', page: 'bcv' };
+    if (type === 'binance') return { monitor: 'binance', page: 'binance' };
+    return { monitor: 'usd', page: 'bcv' };
+  };
 
   const defaultValues = {
     name: '',
@@ -29,8 +37,8 @@ function CreateLoanScreen({ navigation }) {
     currency: 'USD',
     ves_exchange: '0.00',
     rate: dollar,
-    rate_type: rateType,
-  }
+    rate_type: page || 'bcv',
+  };
 
   const {
     control,
@@ -42,49 +50,59 @@ function CreateLoanScreen({ navigation }) {
   } = useForm({
     defaultValues,
     resolver: yupResolver(validationSchema),
-  })
+  });
 
-  const { data: updatedDollarPrice, isLoading: isLoadingDollarPrice } = useDollar(shouldFetch, getValues('rate_type'))
-
+  // Sincroniza el formulario con los valores del contexto al montar/actualizar
   useEffect(() => {
-    if(updatedDollarPrice) {
-      setDollarPrice(updatedDollarPrice)
-      setRateType(getValues('rate_type'))
-      setValue('rate', updatedDollarPrice)
+    setValue('rate_type', page || 'bcv');
+    setRateType(page || 'bcv');
+    setValue('rate', dollar || 0);
+  }, [page]);
 
-      // CALCULAR EL PRECIO DEL DOLAR A BS CUANDO EL PRESTAMO ES EN VES AL CAMBIAR LA TASA Y VICEVERSA
-      if(getValues('currency') == 'USD') {
-        if(getValues('ves_exchange') > 0) {
-          const ves_exchange = (updatedDollarPrice * getValues('amount')).toFixed(2)
-          setValue('ves_exchange', ves_exchange)
-        }
+  // Recalcular conversiones cuando cambie el precio en el contexto
+  useEffect(() => {
+    if (!dollar) return;
+    setValue('rate', dollar);
+    if (getValues('currency') === 'USD') {
+      const amount = parseFloat(getValues('amount'));
+      if (!isNaN(amount) && amount > 0) {
+        const ves_exchange = (dollar * amount).toFixed(2);
+        setValue('ves_exchange', ves_exchange);
       }
-      else {
-        if(getValues('amount') > 0) {
-          const usd_exchange = (getValues('ves_exchange') / updatedDollarPrice).toFixed(2)
-          setValue('amount', usd_exchange)
-        }
+    } else {
+      const vesAmount = parseFloat(getValues('ves_exchange'));
+      if (!isNaN(vesAmount) && vesAmount > 0) {
+        const usd_exchange = (vesAmount / dollar).toFixed(2);
+        setValue('amount', usd_exchange);
       }
     }
-  }, [updatedDollarPrice])
+  }, [dollar]);
 
   const onChangeRateType = (value) => {
-    setValue('rate_type', value)
-    setShouldFetch(true)
-  }
+    setValue('rate_type', value);
+    setRateType(value);
+    const params = getRateParams(value);
+    // Actualiza el contexto para que el precio se obtenga globalmente
+    setPage(params.page);
+    setMonitor(params.monitor);
+  };
 
-  const onChangeAmount = (value) => {
-    if(getValues('currency') == 'USD') {
-      const ves_exchange = (dollar * value).toFixed(2)
-      setValue('amount', value)
-      setValue('ves_exchange', ves_exchange)
-      console.log("ves_exchange", ves_exchange)
+  const onChangeAmount = (rawValue) => {
+    const normalized = String(rawValue).replace(/,/g, '.');
+    const value = parseFloat(normalized);
+    if (isNaN(value)) {
+      setValue('amount', '');
+      setValue('ves_exchange', '');
+      return;
     }
-    else {
-      const dollar_exchange = (value / dollar).toFixed(2)
-      setValue('amount', dollar_exchange)
-      setValue('ves_exchange', value)
-      console.log("dollar_exchange", dollar_exchange)
+    if(getValues('currency') === 'USD') {
+      const ves_exchange = (dollar * value).toFixed(2);
+      setValue('amount', normalized);
+      setValue('ves_exchange', ves_exchange);
+    } else {
+      const dollar_exchange = (value / dollar).toFixed(2);
+      setValue('amount', dollar_exchange);
+      setValue('ves_exchange', normalized);
     }
   };
 
@@ -108,7 +126,6 @@ function CreateLoanScreen({ navigation }) {
       index: 0,
       routes: [{ name: 'Home' }]
     })
-
   }
 
   return (
@@ -134,7 +151,7 @@ function CreateLoanScreen({ navigation }) {
         </View>
 
         <View style={styles.marginBottom}>
-          <Text style={styles.labelPicker}>Selecciona la moneda:</Text>
+          <Text style={styles.labelPicker}>Selecciona la moneda</Text>
           <View style={styles.pickerStyle}>
             <Controller
               name="currency"
@@ -147,15 +164,16 @@ function CreateLoanScreen({ navigation }) {
                     { label: 'USD', value: 'USD' },
                     { label: 'VES', value: 'VES' },
                   ]}
+                  placeholder={{ label: 'Moneda', value: null }}
                 />
               )}
             />
           </View>
-          {errors.currency && <Text style={styles.inputError}>{errors.currency.message}</Text>}
+          {errors.currency && <HelperText type="error" visible>{errors.currency.message}</HelperText>}
         </View>
 
         <View style={styles.marginBottom}>
-          <Text style={styles.labelPicker}>Selecciona el tipo de tasa:</Text>
+          <Text style={styles.labelPicker}>Selecciona el tipo de tasa</Text>
           <View style={styles.pickerStyle}>
             <Controller
               name="rate_type"
@@ -165,15 +183,23 @@ function CreateLoanScreen({ navigation }) {
                   value={value}
                   onValueChange={onChangeRateType}
                   items={[
-                    { value: 'enparalelovzla', label: 'Paralelo' },
+                    { value: 'binance', label: 'Binance' },
                     { value: 'bcv', label: 'BCV' },
                   ]}
+                  placeholder={{ label: 'Tipo de tasa', value: null }}
                 />
               )}
             />
           </View>
-          {errors.rate_type && <Text style={styles.inputError}>{errors.rate_type.message}</Text>}
-          {dollar && <Text style={styles.rateTypeText}>{dollar} VES</Text>}
+          {errors.rate_type && <HelperText type="error" visible>{errors.rate_type.message}</HelperText>}
+          <View style={styles.rateRow}>
+            <Chip icon="currency-usd" mode="flat" compact>{rateType === 'bcv' ? 'BCV' : 'Binance'}</Chip>
+            {isDollarLoading ? (
+              <ActivityIndicator size="small" />
+            ) : (
+              <Text style={styles.rateTypeText}>1 USD = {dollar} VES</Text>
+            )}
+          </View>
         </View>
 
         { watch('currency') == 'USD' &&
@@ -185,13 +211,15 @@ function CreateLoanScreen({ navigation }) {
                 <TextInput
                   mode="outlined"
                   label="Monto"
-                  value={value}
+                  value={String(value)}
                   onChangeText={onChangeAmount}
                   right={<TextInput.Icon icon="cash" />}
+                  keyboardType="decimal-pad"
+                  inputMode="decimal"
                 />
               )}
             />
-            {errors.amount && <Text style={styles.inputError}>{errors.amount.message}</Text>}
+            {errors.amount && <HelperText type="error" visible>{errors.amount.message}</HelperText>}
           </View>
         }
 
@@ -200,9 +228,9 @@ function CreateLoanScreen({ navigation }) {
             <Text style={styles.labelPicker}>Cambio a VES</Text>
             <View style={styles.vesExchangeInput}>
               <Text style={styles.vesExchangeInputText}>{watch('ves_exchange') ?? 'Cambio a VES'}</Text>
-              { isLoadingDollarPrice && <ActivityIndicator size="small"  /> }
+              { isDollarLoading && <ActivityIndicator size="small"  /> }
             </View>
-            {errors.ves_exchange && <Text style={styles.inputError}>{errors.ves_exchange.message}</Text>}
+            {errors.ves_exchange && <HelperText type="error" visible>{errors.ves_exchange.message}</HelperText>}
           </View>
         }
 
@@ -215,13 +243,15 @@ function CreateLoanScreen({ navigation }) {
                 <TextInput
                   mode="outlined"
                   label="Monto"
-                  value={value}
+                  value={String(value)}
                   onChangeText={onChangeAmount}
                   right={<TextInput.Icon icon="cash" />}
+                  keyboardType="decimal-pad"
+                  inputMode="decimal"
                 />
               )}
             />
-            {errors.ves_exchange && <Text style={styles.inputError}>{errors.ves_exchange.message}</Text>}
+            {errors.ves_exchange && <HelperText type="error" visible>{errors.ves_exchange.message}</HelperText>}
           </View>
         }
 
@@ -230,7 +260,7 @@ function CreateLoanScreen({ navigation }) {
             <Text style={styles.labelPicker}>Cambio a USD</Text>
             <View style={styles.vesExchangeInput}>
               <Text style={styles.vesExchangeInputText}>{watch('amount') ?? 'Cambio a USD'}</Text>
-              { isLoadingDollarPrice && <ActivityIndicator size="small"  /> }
+              { isDollarLoading && <ActivityIndicator size="small"  /> }
             </View>
           </View>
         }
@@ -300,7 +330,8 @@ function CreateLoanScreen({ navigation }) {
           visible={modalVisible}
         >
           <View>
-            <Text style={styles.h3Text}>Resumen de la operación:</Text>
+              <Text style={styles.h3Text}>Resumen de la operación</Text>
+              <Divider style={{ marginBottom: 10 }} />
             <View style={styles.tableContainer}>
 
               <View style={styles.tableContainerItem}>
@@ -335,7 +366,7 @@ function CreateLoanScreen({ navigation }) {
 
               <View style={styles.tableContainerItem}>
                 <Text style={[styles.resumeTitleText, styles.bold]}>Tipo de Tasa</Text>
-                <Text style={styles.resumeTitleText}>{ getValues('rate_type') == 'bcv' ? 'BCV' : 'Paralelo' }</Text>
+                <Text style={styles.resumeTitleText}>{ getValues('rate_type') == 'bcv' ? 'BCV' : 'Binance' }</Text>
               </View>
 
               <View style={styles.tableContainerItem}>
@@ -390,6 +421,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
     textAlign: 'right'
+  },
+  rateRow: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
   resumeTitleText: {
     width: '50%',
